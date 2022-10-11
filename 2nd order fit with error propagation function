@@ -1,0 +1,32 @@
+#2nd order fit with error propagation function
+import pandas as pd
+import math
+df=pd.read_csv('Example_data.csv', sep=',', names=['t','It'], header=0)
+
+#calculating k and error
+If = 1
+df['k'] = df['It']/(If*(If-df['It'])*df['t']) #k
+df['ΔIt'] = (1/(df['t']*(If-df['It'])**2)) *0.1*df['It']
+df['ΔIf'] = (df['It']*(df['It']-2*If)) / (If**2*df['t']*(If-df['It'])**2) *0.1*If
+df['Δk'] = ((df['ΔIt']**2) + (df['ΔIf']**2))**(1/2) #k error
+df['k/Δk^2'] = df['k'] / df['Δk']**2 #calculation for weighted mean
+df['1/Δk^2'] = 1 / df['Δk']**2 #calculation for weighted mean
+# display (df)
+k_avg = (df["k/Δk^2"].sum() / df["1/Δk^2"].sum()) *10**5 #weighted mean k / in case of DNA multiply by 10**8 not *10**5
+k_avg = "{:.2f}".format(k_avg)
+k_error = ((1/(df['1/Δk^2'].sum()))**(1/2)) *10**5 #weighted mean error k / in case of DNA multiply by 10**8 not *10**5
+k_error = "{:.2f}".format(k_error)
+
+#plot
+plt.figure(figsize=(7.2,5.2))
+plt.errorbar(df['t'], df['It'], color='#1462d7',marker='.', linestyle='none', ms=10,\
+             label = 'k = '+str(k_avg)+' [M$^{-1}$s$^{-1}$] \nk$_{err}$ = '+str(k_error)+' [M$^{-1}$s$^{-1}$]')
+
+plt.title('CTAC, C = 100 µM, CoA + CoA-M', fontsize=26)
+plt.xticks(size=18)
+plt.yticks(size=18)
+plt.xlabel('time [s]', fontsize=23)
+plt.ylabel('fluorescence [a.u.]', fontsize=23)
+plt.legend(frameon=True, loc='right', fontsize=14)
+
+plt.show()
